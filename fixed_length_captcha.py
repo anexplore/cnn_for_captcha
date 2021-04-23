@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-CNN训练定长验证码识别模型
+CNN训练定长字符验证码识别模型
 """
 import json
 import io
 import os
 import os.path
-
 
 import keras_preprocessing.image
 import numpy as np
@@ -93,6 +92,10 @@ class FixCaptchaLengthModel(object):
         self.dropout = dropout
         self.label_number = label_number
         self.fixed_length = fixed_length
+        self.kernel_size = (3, 3)
+        self.pool_size = (2, 2)
+        self.padding = 'valid'
+        self.activation = 'relu'
 
     def model(self):
         """
@@ -103,20 +106,23 @@ class FixCaptchaLengthModel(object):
         input = keras.Input(shape=(self.image_height, self.image_width, self.image_channel), batch_size=None)
         model.add(input)
         # 第一层 卷积
-        model.add(layers.Convolution2D(filters=32, kernel_size=(3, 3), strides=1, padding="valid", activation="relu"))
-        model.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+        model.add(layers.Convolution2D(filters=32, kernel_size=self.kernel_size, strides=1, padding=self.padding,
+                                       activation=self.activation))
+        model.add(layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
         model.add(layers.Dropout(rate=self.dropout))
         # 第二层 卷积
-        model.add(layers.Convolution2D(filters=64, kernel_size=(3, 3), strides=1, padding="valid", activation="relu"))
-        model.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+        model.add(layers.Convolution2D(filters=64, kernel_size=self.kernel_size, strides=1, padding=self.padding,
+                                       activation=self.activation))
+        model.add(layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
         model.add(layers.Dropout(rate=self.dropout))
         # 第三层 卷积
-        model.add(layers.Convolution2D(filters=128, kernel_size=(3, 3), strides=1, padding="valid", activation="relu"))
-        model.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+        model.add(layers.Convolution2D(filters=128, kernel_size=self.kernel_size, strides=1, padding=self.padding,
+                                       activation=self.activation))
+        model.add(layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
         model.add(layers.Dropout(rate=self.dropout))
         model.add(layers.Flatten())
         # 第三层 全连接
-        model.add(layers.Dense(units=1024, activation='relu'))
+        model.add(layers.Dense(units=1024, activation=self.activation))
         model.add(layers.Dropout(rate=self.dropout))
         # 第四层 全连接
         model.add(layers.Dense(units=self.fixed_length * self.label_number, activation="sigmoid"))
@@ -126,7 +132,7 @@ class FixCaptchaLengthModel(object):
 
     def load_from_disk(self, model_file_path):
         """
-        从文本磁盘加载已经训练好的模型
+        从磁盘加载已经训练好的模型
         :param model_file_path: 模型文件路径
         :return: keras.Sequential
         """
@@ -141,12 +147,13 @@ class CheckAccuracyCallback(keras.callbacks.Callback):
     """
     检查上一轮的训练准确率
     """
-    def __init__(self, input_x, input_y, test_x, test_y, label_number, fixed_label_length, batch_size=128):
+
+    def __init__(self, train_x, train_y, validation_x, validation_y, label_number, fixed_label_length, batch_size=128):
         super(CheckAccuracyCallback, self).__init__()
-        self.input_x = input_x
-        self.input_y = input_y
-        self.test_x = test_x
-        self.test_y = test_y
+        self.train_x = train_x
+        self.train_y = train_y
+        self.validation_x = validation_x
+        self.validation_y = validation_y
         self.label_number = label_number
         self.fixed_label_length = fixed_label_length
         self.batch_size = batch_size
@@ -162,15 +169,15 @@ class CheckAccuracyCallback(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         print('\nEpoch %s with logs: %s' % (epoch, logs))
         # 选择一个batch并计算准确率
-        batches = (len(self.input_x) + self.batch_size - 1) / self.batch_size
+        batches = (len(self.train_x) + self.batch_size - 1) / self.batch_size
         target_batch = (epoch + 1) % batches
         batch_start = int((target_batch - 1) * self.batch_size)
-        batch_x = self.input_x[batch_start: batch_start + self.batch_size]
-        batch_y = self.input_y[batch_start: batch_start + self.batch_size]
+        batch_x = self.train_x[batch_start: batch_start + self.batch_size]
+        batch_y = self.train_y[batch_start: batch_start + self.batch_size]
         on_train_batch_acc = self._compare_accuracy(batch_x, batch_y)
         print('Epoch %s with image accuracy on train batch: %s' % (epoch, keras.backend.eval(on_train_batch_acc)))
-        on_test_batch_acc = self._compare_accuracy(self.test_x, self.test_y)
-        print('Epoch %s with image accuracy on test: %s\n' % (epoch, keras.backend.eval(on_test_batch_acc)))
+        on_test_batch_acc = self._compare_accuracy(self.validation_x, self.validation_y)
+        print('Epoch %s with image accuracy on validation: %s\n' % (epoch, keras.backend.eval(on_test_batch_acc)))
 
 
 class Config(object):
@@ -191,9 +198,6 @@ class Config(object):
     @staticmethod
     def load_configs_from_json_file(file_path='fixed_length_captcha.json'):
         """
-        {
-          ""
-        }
         :param file_path: file path
         :return: dict instance
         """
@@ -206,6 +210,7 @@ class Predictor(object):
     """
     预测器
     """
+
     def __init__(self, config_file_path='fixed_length_captcha.json'):
         self.config = Config.load_configs_from_json_file(config_file_path)
         self.model = FixCaptchaLengthModel(self.config.image_height, self.config.image_width, len(self.config.labels),
@@ -238,7 +243,6 @@ class Predictor(object):
                 fd.write(content)
         return self.predict_single_image_content(content)
 
-
     def predict_single_image_content(self, image_content):
         """
         预测单张图片
@@ -265,8 +269,8 @@ def train():
     config = Config.load_configs_from_json_file()
     train_x, train_y = load_image_data(config.train_image_dir, config.image_height, config.image_width,
                                        config.labels, config.fixed_length)
-    test_x, test_y = load_image_data(config.validation_image_dir, config.image_height, config.image_width,
-                                     config.labels, config.fixed_length)
+    validation_x, validation_y = load_image_data(config.validation_image_dir, config.image_height, config.image_width,
+                                                 config.labels, config.fixed_length)
     print('total train image number: %s' % len(train_x))
     print('total validation image number: %s' % len(train_y))
     model = FixCaptchaLengthModel(config.image_height, config.image_width, len(config.labels), config.fixed_length,
@@ -277,11 +281,11 @@ def train():
         model = model.model()
     callbacks = [
         keras.callbacks.ModelCheckpoint(filepath=config.model_save_path),
-        CheckAccuracyCallback(train_x, train_y, test_x, test_y, len(config.labels), config.fixed_length,
+        CheckAccuracyCallback(train_x, train_y, validation_x, validation_y, len(config.labels), config.fixed_length,
                               batch_size=config.train_batch_size)
     ]
     model.fit(train_x, train_y, batch_size=config.train_batch_size, epochs=config.epochs,
-              validation_data=(test_x, test_y), callbacks=callbacks)
+              validation_data=(validation_x, validation_y), callbacks=callbacks)
 
 
 if __name__ == '__main__':
