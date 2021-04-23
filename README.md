@@ -1,2 +1,5 @@
 # cnn_for_captcha
-cnn for captcha for study and test
+
+基于深度学习的图片验证码识别
+
+* 固定长度的文字验证码识别

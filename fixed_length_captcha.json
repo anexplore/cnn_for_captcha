@@ -1,0 +1,13 @@
+{
+  "image_height": 53,
+  "image_width": 130,
+  "fixed_length": 4,
+  "batch_size": 128,
+  "save_path": "model.dat",
+  "labels": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "train_image_dir": "train_images",
+  "validation_image_dir": "validation_images",
+  "learning_rate": 0.0001,
+  "dropout_rate": 0.25,
+  "epochs": 100
+}
