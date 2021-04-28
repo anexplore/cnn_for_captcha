@@ -159,7 +159,7 @@ class CheckAccuracyCallback(keras.callbacks.Callback):
         self.batch_size = batch_size
 
     def _compare_accuracy(self, data_x, data_y):
-        predict_y = self.model.predict(data_x)
+        predict_y = self.model.predict_on_batch(data_x)
         predict_y = keras.backend.reshape(predict_y, [len(data_x), self.fixed_label_length, self.label_number])
         data_y = keras.backend.reshape(data_y, [len(data_y), self.fixed_label_length, self.label_number])
         equal_result = keras.backend.equal(keras.backend.argmax(predict_y, axis=2),
@@ -256,9 +256,10 @@ class Predictor(object):
         image_data[0] = keras_preprocessing.image.img_to_array(p_image)
         if hasattr(p_image, 'close'):
             p_image.close()
-        result = self.model.predict(image_data)
+        result = self.model.predict_on_batch(image_data)
         result = keras.backend.reshape(result, [1, self.config.fixed_length, self.label_number])
         result = keras.backend.argmax(result, axis=2)
+
         return array_to_label(keras.backend.eval(result)[0], self.config.labels)
 
 
@@ -289,8 +290,8 @@ def train():
 
 
 if __name__ == '__main__':
-    train()
-    """
+    #train()
+
     pre = Predictor()
-    print(pre.predict_remote_image('remote url', save_image_to_file='test.jpg'))
-    """
+    print(pre.predict_remote_image('http://mp.weixin.qq.com/mp/verifycode?cert=123', save_image_to_file='test.jpg'))
+
