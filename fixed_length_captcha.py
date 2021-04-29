@@ -9,11 +9,10 @@ import os.path
 
 import keras_preprocessing.image
 import numpy as np
-from PIL import Image as pil_image
+import PIL.Image
 import requests
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 
 
 def label_to_array(text, labels):
@@ -106,26 +105,26 @@ class FixCaptchaLengthModel(object):
         input = keras.Input(shape=(self.image_height, self.image_width, self.image_channel), batch_size=None)
         model.add(input)
         # 第一层 卷积
-        model.add(layers.Convolution2D(filters=32, kernel_size=self.kernel_size, strides=1, padding=self.padding,
+        model.add(keras.layers.Convolution2D(filters=32, kernel_size=self.kernel_size, strides=1, padding=self.padding,
                                        activation=self.activation))
-        model.add(layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
-        model.add(layers.Dropout(rate=self.dropout))
+        model.add(keras.layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
+        model.add(keras.layers.Dropout(rate=self.dropout))
         # 第二层 卷积
-        model.add(layers.Convolution2D(filters=64, kernel_size=self.kernel_size, strides=1, padding=self.padding,
+        model.add(keras.layers.Convolution2D(filters=64, kernel_size=self.kernel_size, strides=1, padding=self.padding,
                                        activation=self.activation))
-        model.add(layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
-        model.add(layers.Dropout(rate=self.dropout))
+        model.add(keras.layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
+        model.add(keras.layers.Dropout(rate=self.dropout))
         # 第三层 卷积
-        model.add(layers.Convolution2D(filters=128, kernel_size=self.kernel_size, strides=1, padding=self.padding,
+        model.add(keras.layers.Convolution2D(filters=128, kernel_size=self.kernel_size, strides=1, padding=self.padding,
                                        activation=self.activation))
-        model.add(layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
-        model.add(layers.Dropout(rate=self.dropout))
-        model.add(layers.Flatten())
+        model.add(keras.layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
+        model.add(keras.layers.Dropout(rate=self.dropout))
+        model.add(keras.layers.Flatten())
         # 第三层 全连接
-        model.add(layers.Dense(units=1024, activation=self.activation))
-        model.add(layers.Dropout(rate=self.dropout))
+        model.add(keras.layers.Dense(units=1024, activation=self.activation))
+        model.add(keras.layers.Dropout(rate=self.dropout))
         # 第四层 全连接
-        model.add(layers.Dense(units=self.fixed_length * self.label_number, activation="sigmoid"))
+        model.add(keras.layers.Dense(units=self.fixed_length * self.label_number, activation="sigmoid"))
         model.compile(optimizer=keras.optimizers.Adam(lr=self.learning_rate), loss="binary_crossentropy",
                       metrics=["binary_accuracy"])
         return model
@@ -249,7 +248,7 @@ class Predictor(object):
         :param image_content: byte content
         :return: predict text
         """
-        p_image = pil_image.open(io.BytesIO(image_content))
+        p_image = PIL.Image.open(io.BytesIO(image_content))
         if p_image.mode not in ('L', 'I;16', 'I'):
             p_image = p_image.convert('L')
         image_data = np.zeros(shape=(1, self.config.image_height, self.config.image_width, 1))
@@ -259,7 +258,6 @@ class Predictor(object):
         result = self.model.predict_on_batch(image_data)
         result = keras.backend.reshape(result, [1, self.config.fixed_length, self.label_number])
         result = keras.backend.argmax(result, axis=2)
-
         return array_to_label(keras.backend.eval(result)[0], self.config.labels)
 
 
@@ -290,8 +288,8 @@ def train():
 
 
 if __name__ == '__main__':
-    #train()
-
-    pre = Predictor()
-    print(pre.predict_remote_image('http://mp.weixin.qq.com/mp/verifycode?cert=123', save_image_to_file='test.jpg'))
-
+    train()
+    """
+    predictor = Predictor()
+    print(predictor.predict_remote_image('url', save_image_to_file='test.jpg'))
+    """
