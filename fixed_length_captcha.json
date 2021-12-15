@@ -3,7 +3,7 @@
   "image_width": 130,
   "fixed_length": 4,
   "batch_size": 128,
-  "save_path": "model.dat",
+  "save_path": "model/model.dat",
   "labels": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
   "train_image_dir": "train_images",
   "validation_image_dir": "validation_images",

@@ -125,7 +125,7 @@ class FixCaptchaLengthModel(object):
         model.add(keras.layers.Dropout(rate=self.dropout))
         # 第四层 全连接
         model.add(keras.layers.Dense(units=self.fixed_length * self.label_number, activation="sigmoid"))
-        model.compile(optimizer=keras.optimizers.Adam(lr=self.learning_rate), loss="binary_crossentropy",
+        model.compile(optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate), loss="binary_crossentropy",
                       metrics=["binary_accuracy"])
         return model
 
@@ -279,7 +279,7 @@ def train():
     else:
         model = model.model()
     callbacks = [
-        keras.callbacks.ModelCheckpoint(filepath=config.model_save_path),
+        keras.callbacks.ModelCheckpoint(filepath=config.model_save_path, save_weights_only=True, save_best_only=True),
         CheckAccuracyCallback(train_x, train_y, validation_x, validation_y, len(config.labels), config.fixed_length,
                               batch_size=config.train_batch_size)
     ]

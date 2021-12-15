@@ -1,4 +1,4 @@
-tensorflow-gpu==1.15.5
+tensorflow
 Pillow
 requests
 numpy
