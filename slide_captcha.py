@@ -79,3 +79,13 @@ def detect_displacement(image_slider, image_background, blur=False, display_imag
         show_image("match", image_background)
     return x, y
 
+"""
+基于YOLO的方法定位缺口需要标注数据且进行训练 时间成本相对较高
+一般情况下使用cv2.matchTemplate基本就能框定出缺口的位置
+"""
+
+class DisplacementFinderByYolo(object):
+
+    def __init__(self):
+        pass
+

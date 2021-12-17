@@ -5,7 +5,7 @@
 ## 1. 固定长度的文字验证码识别 fixed_length_captcha.py
 
 ### 依赖
-_**tensorflow-gpu==1.15.5**_
+_**tensorflow 2.X**_
 
 ### 1.1 输入要求
 * 将训练集和验证集分别放到配置文件指定的目录中
@@ -50,6 +50,9 @@ python split_data.py all_image_dir train_image_dir validation_image_dir 0.9
 * 0.9 训练集比例
 
 以上目录需要提前创建
+
+## 2. 滑动验证码 slide_captcha.py
+提供滑动验证码相关解决方法与思路
 
 ### X.2 泄漏问题
 * keras model.predict 或者 keras model predict_on_batch都存在内存泄漏问题，目前尚未找到解决方案
