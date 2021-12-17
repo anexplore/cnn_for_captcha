@@ -120,10 +120,10 @@ class FixCaptchaLengthModel(object):
         model.add(keras.layers.MaxPooling2D(pool_size=self.pool_size, strides=self.pool_size))
         model.add(keras.layers.Dropout(rate=self.dropout))
         model.add(keras.layers.Flatten())
-        # 第三层 全连接
+        # 第四层 全连接
         model.add(keras.layers.Dense(units=1024, activation=self.activation))
         model.add(keras.layers.Dropout(rate=self.dropout))
-        # 第四层 全连接
+        # 第五层 全连接
         model.add(keras.layers.Dense(units=self.fixed_length * self.label_number, activation="sigmoid"))
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate), loss="binary_crossentropy",
                       metrics=["binary_accuracy"])

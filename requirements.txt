@@ -2,3 +2,4 @@ tensorflow
 Pillow
 requests
 numpy
+opencv-python
