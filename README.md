@@ -37,6 +37,10 @@ predictor.predict_remote_image('http://xxxxxx/xx.jpg', save_image_to_file='remot
 * ![image](images/4x4e_11039.png) 这种图片2w张左右的训练集训练后实际能达到90%以上的准确率
 
 
+## 2. 滑动验证码 slide_captcha.py
+提供滑动验证码相关解决方法与思路
+
+
 ## X.其它
 ### X.1 图片数据切分
 将准备好的图片按照比例切分成训练集和验证集
@@ -50,9 +54,6 @@ python split_data.py all_image_dir train_image_dir validation_image_dir 0.9
 * 0.9 训练集比例
 
 以上目录需要提前创建
-
-## 2. 滑动验证码 slide_captcha.py
-提供滑动验证码相关解决方法与思路
 
 ### X.2 泄漏问题
 * keras model.predict 或者 keras model predict_on_batch都存在内存泄漏问题，目前尚未找到解决方案
