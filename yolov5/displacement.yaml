@@ -1,0 +1,12 @@
+path: displacement_images  # dataset root dir
+train: train/images  # train images (relative to 'path')
+val: val/images  # val images (relative to 'path')
+test:  # test images (optional)
+
+# Classes
+nc: 1  # number of classes
+names: ['displacement']  # class names
+
+
+# Download script/URL (optional)
+download:

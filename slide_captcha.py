@@ -82,10 +82,18 @@ def detect_displacement(image_slider, image_background, blur=False, display_imag
 """
 基于YOLO的方法定位缺口需要标注数据且进行训练 时间成本相对较高
 一般情况下使用cv2.matchTemplate基本就能框定出缺口的位置
+使用 [yolo v5](https://github.com/ultralytics/yolov5) 进行训练
+基于yolo v5中的detect.py改造自己的检查函数即可
 """
+
 
 class DisplacementFinderByYolo(object):
 
     def __init__(self):
         pass
 
+    def detect_displacement(self, img_path):
+        """
+        基于yolo v5中detect.py的run函数改造此函数即可
+        """
+        pass
