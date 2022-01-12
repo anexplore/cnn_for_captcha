@@ -43,6 +43,7 @@ predictor.predict_remote_image('http://xxxxxx/xx.jpg', save_image_to_file='remot
 此方法简单易于验证, 配合一些规则即可达到满意效果
 
 以下是match template的效果
+
 ![match template](images/matchtemplate.png)
 
 ### 2.2 基于YOLOv5的检测
@@ -54,10 +55,10 @@ predictor.predict_remote_image('http://xxxxxx/xx.jpg', save_image_to_file='remot
 ~~~text
 本项目中yolov5中提供了100张标注好的图片;
 参数:
-batch-size 根据可能内存或者显存以及训练效果;
+batch-size 根据可用内存或者显存以及训练效果;
 epochs 根据训练效果来定
 yolov5s.yaml在yolov5项目的models下面
-img 图片缩放基准 建议用图片的宽或者高即可
+img 图片缩放基准 建议用图片的宽或者高即可(需要考虑图片大小 如果图片过大建议调低此值)
 weights 设置预训练模型 没有为空即可
 
 python train.py --batch-size 4 --epochs 200 --img 344 --data displacement.yaml --weights '' --cfg yolov5s.yaml

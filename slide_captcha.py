@@ -92,8 +92,17 @@ class DisplacementFinderByYolo(object):
     def __init__(self):
         pass
 
+    def _load_models(self, weights_file_path, **kwargs):
+        """
+        加载模型
+        :param model_file_path: weights文件路径
+        :param kwargs: 其它控制参数
+        """
+
     def detect_displacement(self, img_path):
         """
         基于yolo v5中detect.py的run函数改造此函数即可
+        方法一: 直接调用detect.run()方法并设置结果写出到txt文件 通过读取txt文件解析结果(此方法每次调用都需要重新加载模型 适合一次性大批量处理)
+        方法二: 复用detect.run中代码，将模型加载放到 self._load_models中 将探测代码放到 detect_displacement中
         """
         pass
