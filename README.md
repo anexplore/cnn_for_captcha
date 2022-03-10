@@ -55,11 +55,11 @@ predictor.predict_remote_image('http://xxxxxx/xx.jpg', save_image_to_file='remot
 ~~~text
 本项目中yolov5中提供了100张标注好的图片;
 参数:
-batch-size 根据可用内存或者显存以及训练效果;
+batch-size 根据可用内存或者显存以及训练效果进行调整
 epochs 根据训练效果来定
 yolov5s.yaml在yolov5项目的models下面
 img 图片缩放基准 建议用图片的宽或者高即可(需要考虑图片大小 如果图片过大建议调低此值)
-weights 设置预训练模型 没有为空即可
+weights 设置预训练模型 没有则为空即可
 
 python train.py --batch-size 4 --epochs 200 --img 344 --data displacement.yaml --weights '' --cfg yolov5s.yaml
 ~~~
@@ -68,7 +68,31 @@ python train.py --batch-size 4 --epochs 200 --img 344 --data displacement.yaml -
 
 
 下面是通过标注100张图片并经过训练得到的模型的探测效果
+
 ![yolov5](images/yolodetect.jpeg)
+
+## 3. 点选文字验证码
+文字点选类验证码一般是从图片中按照指定顺序选择目标文字
+
+![textclick](images/textclick.png)
+
+目标文字一般通过 "文字" 或者 "文字图片" 的方式给出
+
+### 3.1 位置标定
+1) 使用yolo类目标识别算法从图片中将候选文字所在的位置框标定出来 
+2) 如果目标文字是通过"文字图片"的方式给出那么也需要使用yolo等将其从图片中标定出来
+
+### 3.2 匹配
+匹配是相对比较难的地方，需要根据不同情况进行实际的分析
+* 如果图片中的文字能够再标定后通过ocr识别出来那么比较容易解决，直接用识别后的字符匹配即可。可用的ocr识别
+[PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) /
+[tesseract](https://github.com/tesseract-ocr/tesseract) /
+[cnocr](https://github.com/breezedeus/cnocr)
+
+* 很多验证码文字都进行的变形、加粗等处理，因此OCR不能有效的进行识别
+   - 1 如果目标文字也是以图片形式提供，可以考虑使用CNN训练一个模型用来判定两张输入图片是否为同一汉字
+   - 2 如果候选文字的范围有限，比如几百或者几千，可以考虑直接使用yolo等给出类别
+   - 3 如果目标文字是通过文本的形式给出，那么可以考虑将文本转成图片，然后用 1 中的方式训练判别模型
 
 ## X.其它
 ### X.1 图片数据切分
