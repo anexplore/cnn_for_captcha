@@ -41,7 +41,10 @@ predictor.predict_remote_image('http://xxxxxx/xx.jpg', save_image_to_file='remot
 提供滑动验证码相关解决方法与思路
 ### 2.1 基于opencv2的match template
 此方法简单易于验证, 配合一些规则即可达到满意效果
-
+~~~python
+import slide_captcha
+slide_captcha.detect_displacement('image_slider.jpg', 'image_background.jpg')
+~~~
 以下是match template的效果
 
 ![match template](images/matchtemplate.png)
@@ -64,7 +67,13 @@ weights 设置预训练模型 没有则为空即可
 python train.py --batch-size 4 --epochs 200 --img 344 --data displacement.yaml --weights '' --cfg yolov5s.yaml
 ~~~
 
-探测方法参考 [detect.py](https://github.com/ultralytics/yolov5/blob/master/detect.py) 中run方法
+探测方法参考 [detect.py](https://github.com/ultralytics/yolov5/blob/master/detect.py) 中run方法 或者 使用slide_captcha.py中方法
+~~~python
+import slide_captcha
+detector = slide_captcha.DisplacementFinderByYolo()
+detector.load_models('best.pt')
+detector.detect_displacement('image.jpg', (640, 640))
+~~~
 
 
 下面是通过标注100张图片并经过训练得到的模型的探测效果

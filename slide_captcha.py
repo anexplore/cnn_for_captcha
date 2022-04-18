@@ -4,6 +4,14 @@
 """
 import cv2
 import numpy as np
+import torch
+
+# yolov5 project
+from yolov5.models import experimental
+from yolov5.utils import torch_utils
+from yolov5.utils import datasets
+from yolov5.utils import general
+from yolov5.utils import plots
 
 
 def wait_for_destroy_windows():
@@ -90,19 +98,66 @@ def detect_displacement(image_slider, image_background, blur=False, display_imag
 class DisplacementFinderByYolo(object):
 
     def __init__(self):
-        pass
+        self.model = None
+        self.device = None
 
-    def _load_models(self, weights_file_path, **kwargs):
+    def load_models(self, weights_file_path, **kwargs):
         """
         加载模型
         :param model_file_path: weights文件路径
         :param kwargs: 其它控制参数
         """
+        # 选择设备
+        device = torch_utils.select_device()
+        # 加载模型
+        model = experimental.attempt_load([weights_file_path,], map_location=device)
+        model.float().eval()
+        self.model = model
+        self.device = device
 
-    def detect_displacement(self, img_path):
+    def detect_displacement(self, img_path, img_size=None):
         """
         基于yolo v5中detect.py的run函数改造此函数即可
         方法一: 直接调用detect.run()方法并设置结果写出到txt文件 通过读取txt文件解析结果(此方法每次调用都需要重新加载模型 适合一次性大批量处理)
         方法二: 复用detect.run中代码，将模型加载放到 self._load_models中 将探测代码放到 detect_displacement中
+        :param img_path 图片路径
+        :param img_size 图片(高 宽)
+        :return 类别，置信度，边框(x, y, w, h)
         """
-        pass
+        stride = max(int(self.model.stride.max()), 32)
+        imgsz = general.check_img_size(img_size, s=stride)
+        dataset = datasets.LoadImages(img_path, img_size=imgsz, stride=stride, auto=True)
+
+        for path, im, im0s, vid_cap, s in dataset:
+            im = torch.from_numpy(im).to(self.device)
+            # uint8 to fp16/32
+            im = im.float()
+            # 0 - 255 to 0.0 - 1.0
+            im /= 255
+            if len(im.shape) == 3:
+                # expand for batch 4-dim
+                im = im[None]
+            pred = self.model(im, augment=False, visualize=False)
+            # 非极大值抑制
+            pred = general.non_max_suppression(pred[0], 0.25, 0.4, None, False, max_det=1000)
+            # Process predictions
+            # per image
+            for _, det in enumerate(pred):
+                if len(det):
+                    # process result
+                    det[:, :4] = general.scale_coords(im.shape[2:], det[:, :4], im0s.shape).round()
+                    for *xyxy, conf, cls in reversed(det):
+                        box = general.xyxy2xywh(torch.tensor(xyxy).view(1, 4)).view(-1).tolist()
+                        confidence_value = conf.item()
+                        class_index = cls.item()
+                        return class_index, confidence_value, box
+
+                    #print('conf %s, class %s, box: %s' % (confidence_value, class_index, box))
+                    """
+                    ann = plots.Annotator(im0s.copy())
+                    ann.box_label(xyxy, 'dis')
+                    im0 = ann.result()
+                    cv2.imshow('dis', im0)
+                    cv2.waitKey(5000)
+                    """
+        return None, None, None
