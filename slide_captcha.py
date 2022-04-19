@@ -147,7 +147,9 @@ class DisplacementFinderByYolo(object):
                     # process result
                     det[:, :4] = general.scale_coords(im.shape[2:], det[:, :4], im0s.shape).round()
                     for *xyxy, conf, cls in reversed(det):
-                        box = general.xyxy2xywh(torch.tensor(xyxy).view(1, 4)).view(-1).tolist()
+                        box = torch.tensor(xyxy).view(1, 4).view(-1).tolist()
+                        box[2] = (box[2] - box[0])
+                        box[3] = (box[3] - box[1])
                         confidence_value = conf.item()
                         class_index = cls.item()
                         return class_index, confidence_value, box
