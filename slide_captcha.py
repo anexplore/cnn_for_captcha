@@ -4,14 +4,17 @@
 """
 import cv2
 import numpy as np
-import torch
 
 # yolov5 project
-from yolov5.models import experimental
-from yolov5.utils import torch_utils
-from yolov5.utils import datasets
-from yolov5.utils import general
-from yolov5.utils import plots
+try:
+    import torch
+    from yolov5.models import experimental
+    from yolov5.utils import torch_utils
+    from yolov5.utils import datasets
+    from yolov5.utils import general
+    from yolov5.utils import plots
+except:
+    pass
 
 
 def wait_for_destroy_windows():
@@ -64,7 +67,7 @@ def detect_displacement(image_slider, image_background, blur=False, display_imag
     :param image_background: 底图 numpy.ndarray or image file path
     :param blur: 预处理时是否模糊图片
     :param display_image: 展示图片
-    :return: top_left_x, top_left_y
+    :return: top_left_x, top_left_y, width, height
     """
     if isinstance(image_slider, str):
         image_slider = _read_image_from_local_file(image_slider)
@@ -85,7 +88,7 @@ def detect_displacement(image_slider, image_background, blur=False, display_imag
         show_image("processed_image_slider", processed_image_slider)
         show_image("processed_image_background", processed_image_background)
         show_image("match", image_background)
-    return x, y
+    return x, y, w, h
 
 """
 基于YOLO的方法定位缺口需要标注数据且进行训练 时间成本相对较高
