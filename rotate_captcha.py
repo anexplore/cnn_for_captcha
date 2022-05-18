@@ -42,9 +42,9 @@ def load_image_data(image_dir_path, image_height, image_width, image_channel=3):
     图片标签从图片文件名中读取 图片文件名应该符合 label_xxxx.jpg(png)格式
     RGB图片将会转换成灰度图片
     :param image_dir_path: 图片路径
-    :param image_height: 图片高度
-    :param image_width: 图片宽度
-    :param image_channel 图片通道
+    :param image_height: 目标图片高度
+    :param image_width: 目标图片宽度
+    :param image_channel 目标图片通道
     :return: image_data, data_label
     """
     image_name_list = os.listdir(image_dir_path)
@@ -52,7 +52,8 @@ def load_image_data(image_dir_path, image_height, image_width, image_channel=3):
     label_data = np.zeros(shape=(len(image_name_list), 1))
     color_mode = 'rgb' if image_channel == 3 else 'grayscale'
     for index, image_name in enumerate(image_name_list):
-        img = keras_preprocessing.image.utils.load_img(os.path.join(image_dir_path, image_name), color_mode=color_mode)
+        img = keras_preprocessing.image.utils.load_img(os.path.join(image_dir_path, image_name), color_mode=color_mode,
+                                                       target_size=(image_height, image_width))
         x = keras_preprocessing.image.utils.img_to_array(img)
         if hasattr(img, 'close'):
             img.close()
@@ -74,7 +75,8 @@ class DirectoryImageGenerator(keras_preprocessing.image.Iterator):
         color_mode = 'rgb' if self.image_channel == 3 else 'grayscale'
         for index, image_index in enumerate(index_array):
             image_path = self.filter_images[image_index]
-            image = keras_preprocessing.image.utils.load_img(image_path, color_mode=color_mode)
+            image = keras_preprocessing.image.utils.load_img(image_path, color_mode=color_mode,
+                                                             target_size=(self.image_height, self.image_width))
             x = keras_preprocessing.image.utils.img_to_array(image)
             if hasattr(image, 'close'):
                 image.close()
@@ -122,7 +124,7 @@ class RotateImageCaptcha(object):
         self.image_channel = 3
         self.learning_rate = 0.001
 
-    def model(self):
+    def model(self, model_path=None):
         """
         ResNet50 + Flatten + 1 FC
         """
@@ -142,19 +144,20 @@ class RotateImageCaptcha(object):
         model = models.Model(inputs=net.inputs, outputs=x, name="rotateresnet50")
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate),
                       loss="binary_crossentropy",
-                      metrics=[metrics.BinaryAccuracy(threshold=0.9)])
+                      metrics=[metrics.BinaryAccuracy(threshold=0.5)])
+        if model_path and os.path.exists(model_path):
+            model.load_weights(model_path)
         return model
 
 
 def test(image_path, model_path='rotatemodel/model.h5'):
-    image_height = 350
-    image_width = 350
+    image_height = 224
+    image_width = 224
     image_channel = 3
     color_mode = 'rgb' if image_channel == 3 else 'grayscale'
-    model = RotateImageCaptcha(image_height, image_width).model()
-    model.load_weights(model_path)
+    model = RotateImageCaptcha(image_height, image_width).model(model_path)
     data = np.full(shape=(1, image_height, image_width, image_channel), fill_value=-1, dtype='float32')
-    img = keras_preprocessing.image.utils.load_img(image_path, color_mode=color_mode)
+    img = keras_preprocessing.image.utils.load_img(image_path, color_mode=color_mode, target_size=(image_height, image_width))
     image_array = keras_preprocessing.image.utils.img_to_array(img)
     data[0] = image_array
     if hasattr(img, 'close'):
@@ -168,8 +171,8 @@ def test(image_path, model_path='rotatemodel/model.h5'):
 
 def train(train_data_dir, epochs=10, model_path='rotatemodel/model.h5'):
     # load data
-    image_height = 350
-    image_width = 350
+    image_height = 224
+    image_width = 224
     image_channel = 3
     # 根据图片大小 可用显存调整
     batch_size = 128
@@ -178,11 +181,8 @@ def train(train_data_dir, epochs=10, model_path='rotatemodel/model.h5'):
     ]
     captcha = RotateImageCaptcha(image_height, image_width)
     captcha.image_channel = image_channel
-    model = captcha.model()
+    model = captcha.model(model_path)
     model.summary()
-    # load weights
-    if os.path.exists(model_path):
-        model.load_weights(model_path)
     # generator
     generator = DirectoryImageGenerator(train_data_dir, image_height, image_width, image_channel,
                                         batch_size=batch_size,
@@ -193,4 +193,4 @@ def train(train_data_dir, epochs=10, model_path='rotatemodel/model.h5'):
 
 if __name__ == '__main__':
     #test('rotate_origin/0_340_1.jpeg')
-    train()
+    train('baidu_rotate_origin')
