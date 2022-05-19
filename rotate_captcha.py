@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 图片旋转验证码识别
-训练集图片命名格式: index_angle.jpeg/index_angle_1.jpeg/index.jpeg
+训练集图片命名格式: index_angle.jpeg/index.jpeg
 """
 import os
 import os.path
@@ -16,7 +16,6 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import applications
 from tensorflow.keras import models
-from tensorflow.keras import metrics
 
 
 def rotate_image(src, dst, angle):
@@ -39,7 +38,7 @@ def rotate_image(src, dst, angle):
 def load_image_data(image_dir_path, image_height, image_width, image_channel=3):
     """
     加载图片数据
-    图片标签从图片文件名中读取 图片文件名应该符合 label_xxxx.jpg(png)格式
+    图片标签从图片文件名中读取 图片文件名应该符合 index_angle.jpg(png)格式
     RGB图片将会转换成灰度图片
     :param image_dir_path: 图片路径
     :param image_height: 目标图片高度
@@ -60,10 +59,10 @@ def load_image_data(image_dir_path, image_height, image_width, image_channel=3):
         image_data[index] = x
         image_name_with_suffix = image_name[0:image_name.rfind('.')]
         fields = image_name_with_suffix.split('_')
-        if len(fields) == 1 or len(fields) == 2:
-            label_data[index] = np.zeros(1)
-        else:
-            label_data[index] = np.ones(1)
+        if len(fields) == 1:
+            label_data[index] = 0.0
+        elif len(fields) == 2:
+            label_data[index] = float(fields[1])
     return image_data, label_data
 
 
@@ -84,15 +83,15 @@ class DirectoryImageGenerator(keras_preprocessing.image.Iterator):
             image_name = image_path.split(os.sep)[-1]
             image_name = image_name[0: image_name.rfind('.')]
             name_fields = image_name.split('_')
-            if len(name_fields) in (1, 2):
-                label_data[index] = np.zeros(1)
-            elif len(name_fields) == 3:
-                label_data[index] = np.ones(1)
+            if len(name_fields) == 1:
+                label_data[index] = 0.0
+            elif len(name_fields) == 2:
+                label_data[index] = float(name_fields[1])
             else:
-                raise RuntimeError('image name must in formats (base_angle/base_angle_1/base)')
+                raise RuntimeError('image name must in formats base_angle.suffix')
         return image_data, label_data
 
-    def __init__(self, directory_path, image_height, image_width, image_channel, batch_size, shuffle=False, seed=0, image_suffix=None):
+    def __init__(self, directory_path, image_height, image_width, image_channel, batch_size, shuffle=True, seed=0, image_suffix=None):
         if not image_suffix:
             image_suffix = ['.png', '.jpg', '.jpeg', '.bmp', '.ppm', '.tif', '.tiff']
         if not os.path.exists(directory_path) or not os.path.isdir(directory_path):
@@ -130,21 +129,17 @@ class RotateImageCaptcha(object):
         """
         input_tensor = keras.Input(shape=(self.image_height, self.image_width, self.image_channel), batch_size=None)
         input_tensor = applications.resnet50.preprocess_input(input_tensor, data_format='channels_last')
-        net = applications.resnet50.ResNet50(include_top=False, weights=None, input_tensor=input_tensor, pooling='max')
+        net = applications.resnet50.ResNet50(include_top=False, weights='imagenet', input_tensor=input_tensor, pooling='max')
         x = net.output
         # flatten
         x = layers.Flatten()(x)
-        """
-        # 效果不明显
-        x = layers.Dense(units=128, activation='relu')(x)
-        x = layers.Dropout(rate=0.25)(x)
-        """
+        x = layers.Dense(units=36, activation='relu')(x)
         # full connection
-        x = layers.Dense(units=1, activation='sigmoid')(x)
+        x = layers.Dense(units=1)(x)
         model = models.Model(inputs=net.inputs, outputs=x, name="rotateresnet50")
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate),
-                      loss="binary_crossentropy",
-                      metrics=[metrics.BinaryAccuracy(threshold=0.5)])
+                      loss="mean_squared_error",
+                      metrics=["mean_absolute_error"])
         if model_path and os.path.exists(model_path):
             model.load_weights(model_path)
         return model
@@ -169,13 +164,13 @@ def test(image_path, model_path='rotatemodel/model.h5'):
     print(np_result)
 
 
-def train(train_data_dir, epochs=10, model_path='rotatemodel/model.h5'):
+def train(train_data_dir, validation_data_dir, epochs=10, model_path='rotatemodel/model.h5'):
     # load data
     image_height = 224
     image_width = 224
     image_channel = 3
     # 根据图片大小 可用显存调整
-    batch_size = 128
+    batch_size = 72
     callbacks = [
         keras.callbacks.ModelCheckpoint(filepath=model_path)
     ]
@@ -187,10 +182,15 @@ def train(train_data_dir, epochs=10, model_path='rotatemodel/model.h5'):
     generator = DirectoryImageGenerator(train_data_dir, image_height, image_width, image_channel,
                                         batch_size=batch_size,
                                         seed=int(time.monotonic()))
+    validation_generator = DirectoryImageGenerator(validation_data_dir, image_height, image_width, image_channel,
+                                        batch_size=batch_size,
+                                        seed=int(time.monotonic()) + 1)
     # train
-    model.fit(x=generator, validation_data=None, epochs=epochs, callbacks=callbacks, steps_per_epoch=generator.size//batch_size)
+    model.fit(x=generator, validation_data=validation_generator, epochs=epochs,
+              callbacks=callbacks, steps_per_epoch=generator.size//batch_size,
+              use_multiprocessing=True)
 
 
 if __name__ == '__main__':
-    #test('rotate_origin/0_340_1.jpeg')
-    train('baidu_rotate_origin')
+    #test('rotate_origin/0_340.jpeg')
+    train('train/', 'test/')
