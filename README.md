@@ -2,10 +2,16 @@
 
 **基于深度学习的图片验证码识别**
 
-## 1. 固定长度的文字验证码识别 fixed_length_captcha.py
+**<font color="#01847">建议1: 尝试此项目中的方法之前，首先确认能不能规避验证码，如果大部分情况下都能规避，就别看此项目了</font>**
+
+**<font color="#01847">建议2: 尝试此项目中的方法之前，首先确认验证码是不是暴力枚举就能把所有情况都列举出来</font>**
+
+****
+## 1. 固定长度的文字验证码识别 
+[fixed_length_captcha.py](fixed_length_captcha.py)
 
 ### 依赖
-_**tensorflow 2.X**_
+_**requirements.txt 这里面比较全可按需安装**_
 
 ### 1.1 输入要求
 * 将训练集和验证集分别放到配置文件指定的目录中
@@ -36,8 +42,11 @@ predictor.predict_remote_image('http://xxxxxx/xx.jpg', save_image_to_file='remot
 * 根训练集样本大小有关
 * ![image](images/4x4e_11039.png) 这种图片2w张左右的训练集训练后实际能达到90%以上的准确率
 
+****
 
-## 2. 滑动验证码 slide_captcha.py
+## 2. 滑动验证码 
+[slide_captcha.py](slide_captcha.py)
+
 提供滑动验证码相关解决方法与思路
 ### 2.1 基于opencv2的match template
 此方法简单易于验证, 配合一些规则即可达到满意效果
@@ -62,7 +71,7 @@ batch-size 根据可用内存或者显存以及训练效果进行调整
 epochs 根据训练效果来定
 yolov5s.yaml在yolov5项目的models下面
 img 图片缩放基准 建议用图片的宽或者高即可(需要考虑图片大小 如果图片过大建议调低此值)
-weights 设置预训练模型 没有则为空即可
+weights 设置预训练模型 没有则为空即可 推荐使用预训练yolov5s.pt
 
 python train.py --batch-size 4 --epochs 200 --img 344 --data displacement.yaml --weights '' --cfg yolov5s.yaml
 ~~~
@@ -72,13 +81,15 @@ python train.py --batch-size 4 --epochs 200 --img 344 --data displacement.yaml -
 import slide_captcha
 detector = slide_captcha.DisplacementFinderByYolo()
 detector.load_models('best.pt')
-detector.detect_displacement('image.jpg', (640, 640))
+detector.detect_displacement('image.jpg', 344)
 ~~~
 
 
 下面是通过标注100张图片并经过训练得到的模型的探测效果
 
 ![yolov5](images/yolodetect.jpeg)
+
+****
 
 ## 3. 点选文字验证码
 文字点选类验证码一般是从图片中按照指定顺序选择目标文字
@@ -102,6 +113,8 @@ detector.detect_displacement('image.jpg', (640, 640))
    - 1 如果目标文字也是以图片形式提供，可以考虑使用CNN训练一个模型用来判定两张输入图片是否为同一汉字
    - 2 如果候选文字的范围有限，比如几百或者几千，可以考虑直接使用yolo等给出类别
    - 3 如果目标文字是通过文本的形式给出，那么可以考虑将文本转成图片，然后用 1 中的方式训练判别模型
+
+****
 
 ## 4. 旋转类验证码 rotate_captcha.py
 旋转类验证码要求将经过旋转后的图片旋转会正确的位置;
@@ -136,7 +149,39 @@ detector.detect_displacement('image.jpg', (640, 640))
 [imagededup](https://github.com/idealo/imagededup) 模块中的基于CNN特征的find_duplicates方法实现相似图片的匹配
 
 * 图片特征的提取可以尝试keras.application下面的其它模型; 可尝试自定义loss函数替代MSE
-  
+
+****
+
+## 5. 点击相似物体验证码
+此类验证码一般是让点击图片中相同或者相似的物体，一般物体的种类在可控范围内，因此可以尝试使用物体识别算法将图片中物体种类识别出来
+然后进行比较
+
+[sameobject_captcha.py](sameobject_captcha.py) 基于yolov5实现物体探测
+
+**原图：**
+
+![sameobject](images/sameobject.jpg)
+
+**结果：**
+
+![sameobjectresult](images/sameobjectresult.jpg)
+
+### 5.1 训练
+至少准备200+张标注过的图片, 图片越多越准确
+
+训练方法参考  [yolov5 train custom data](https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data)
+
+> 如果用labelme标注可以使用[labelme_json_to_yolov5_format.py](labelme_json_to_yolov5_format.py)转换格式
+
+### 5.2 结果
+此项目中效果是300张标注数据在训练100轮后的结果
+
+此项目中的物体是部分字母、数字、三角锥等，从结果中可以看到h/r, C/G, U和圆柱体等识别混乱或者有的识别错误，增加训练集数量应该可以降低错误率
+
+![trainresult](images/sameobjecttrain.jpg)
+
+****
+
 ## X.其它
 ### X.1 图片数据切分
 将准备好的图片按照比例切分成训练集和验证集
@@ -150,9 +195,6 @@ python split_data.py all_image_dir train_image_dir validation_image_dir 0.9
 * 0.9 训练集比例
 
 以上目录需要提前创建
-
-### X.2 泄漏问题
-* keras model.predict 或者 keras model predict_on_batch都存在内存泄漏问题，目前尚未找到解决方案
 
 ### X.3 深度学习训练资源
 * 推荐直接使用阿里云/腾讯云等平台上的GPU按量计费资源，可在有限时间和费用的前提大最大化机器配置加快训练

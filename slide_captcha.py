@@ -107,7 +107,7 @@ class DisplacementFinderByYolo(object):
     def load_models(self, weights_file_path, **kwargs):
         """
         加载模型
-        :param model_file_path: weights文件路径
+        :param weights_file_path: weights文件路径
         :param kwargs: 其它控制参数
         """
         # 选择设备
@@ -123,9 +123,9 @@ class DisplacementFinderByYolo(object):
         基于yolo v5中detect.py的run函数改造此函数即可
         方法一: 直接调用detect.run()方法并设置结果写出到txt文件 通过读取txt文件解析结果(此方法每次调用都需要重新加载模型 适合一次性大批量处理)
         方法二: 复用detect.run中代码，将模型加载放到 self._load_models中 将探测代码放到 detect_displacement中
-        :param img_path 图片路径
-        :param img_size 图片(高 宽)
-        :return 类别，置信度，边框(x, y, w, h)
+        :param img_path: 图片路径
+        :param img_size: 图片(高 宽) 这里需要和训练模型时传递的图片size参数一致
+        :return: 类别，置信度，边框(x, y, w, h) x,y是左上角坐标
         """
         stride = max(int(self.model.stride.max()), 32)
         imgsz = general.check_img_size(img_size, s=stride)
@@ -148,6 +148,7 @@ class DisplacementFinderByYolo(object):
             for _, det in enumerate(pred):
                 if len(det):
                     # process result
+                    # 转换回原始图片尺度
                     det[:, :4] = general.scale_coords(im.shape[2:], det[:, :4], im0s.shape).round()
                     for *xyxy, conf, cls in reversed(det):
                         box = torch.tensor(xyxy).view(1, 4).view(-1).tolist()
@@ -155,7 +156,7 @@ class DisplacementFinderByYolo(object):
                         box[3] = (box[3] - box[1])
                         confidence_value = conf.item()
                         class_index = cls.item()
-                        return class_index, confidence_value, box
+                        return int(class_index), confidence_value, box
 
                     #print('conf %s, class %s, box: %s' % (confidence_value, class_index, box))
                     """
