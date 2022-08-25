@@ -144,6 +144,9 @@ detector.detect_displacement('image.jpg', 344)
 
 **rotate_captcha.py** 中将旋转看作了回归问题, 使用ResNet50进行特征的提取；
 
+**[PULC 含文字图像方向分类模型](https://github.com/PaddlePaddle/PaddleClas/blob/develop/docs/zh_CN/PULC/PULC_text_image_orientation.md)** 这个paddlepaddle中实现文字图片旋转矫正的模型或许对我们能够有所启发
+
+
 ### 4.x tips
 * 从目标网站验证码界面下载旋转验证码图片，这时会遇到同一张图片的N中不同旋转角度的图片，此时可以基于
 [imagededup](https://github.com/idealo/imagededup) 模块中的基于CNN特征的find_duplicates方法实现相似图片的匹配
