@@ -110,7 +110,7 @@ detector.detect_displacement('image.jpg', 344)
 [cnocr](https://github.com/breezedeus/cnocr)
 
 * 很多验证码文字都进行的变形、加粗等处理，因此OCR不能有效的进行识别
-   - 1 如果目标文字也是以图片形式提供，可以考虑使用CNN训练一个模型用来判定两张输入图片是否为同一汉字
+   - 1 如果目标文字也是以图片形式提供，可以考虑使用CNN训练一个模型用来判定两张输入图片是否为同一汉字。可以参考[孪生神经网络 Siamese Neural Networks](https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf)
    - 2 如果候选文字的范围有限，比如几百或者几千，可以考虑直接使用yolo等给出类别
    - 3 如果目标文字是通过文本的形式给出，那么可以考虑将文本转成图片，然后用 1 中的方式训练判别模型
 
