@@ -13,9 +13,10 @@ import numpy as np
 import keras_preprocessing.image
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras import applications
-from tensorflow.keras import models
+from keras import backend
+from keras import layers
+from keras import applications
+from keras import models
 
 
 def rotate_image(src, dst, angle):
@@ -62,7 +63,7 @@ def load_image_data(image_dir_path, image_height, image_width, image_channel=3):
         if len(fields) == 1:
             label_data[index] = 0.0
         elif len(fields) == 2:
-            label_data[index] = float(fields[1])
+            label_data[index] = float(fields[1]) / 360
     return image_data, label_data
 
 
@@ -86,7 +87,7 @@ class DirectoryImageGenerator(keras_preprocessing.image.Iterator):
             if len(name_fields) == 1:
                 label_data[index] = 0.0
             elif len(name_fields) == 2:
-                label_data[index] = float(name_fields[1])
+                label_data[index] = float(name_fields[1]) / 360
             else:
                 raise RuntimeError('image name must in formats base_angle.suffix')
         return image_data, label_data
@@ -115,6 +116,21 @@ class DirectoryImageGenerator(keras_preprocessing.image.Iterator):
         super(DirectoryImageGenerator, self).__init__(self.size, batch_size, shuffle, seed)
 
 
+def angle_difference(x, y):
+    """
+    Calculate minimum difference between two angles.
+    """
+    return 180 - abs(abs(x - y) - 180)
+
+
+def angle_error_regression(y_true, y_pred):
+    """
+    Calculate the mean difference between the true angles
+    and the predicted angles.
+    """
+    return backend.mean(angle_difference(y_true * 360, y_pred * 360))
+
+
 class RotateImageCaptcha(object):
 
     def __init__(self, image_height, image_width):
@@ -128,18 +144,18 @@ class RotateImageCaptcha(object):
         ResNet50 + Flatten + 1 FC
         """
         input_tensor = keras.Input(shape=(self.image_height, self.image_width, self.image_channel), batch_size=None)
-        input_tensor = applications.resnet50.preprocess_input(input_tensor, data_format='channels_last')
-        net = applications.resnet50.ResNet50(include_top=False, weights='imagenet', input_tensor=input_tensor, pooling='max')
+        input_tensor = applications.resnet.preprocess_input(input_tensor, data_format='channels_last')
+        net = applications.resnet.ResNet50(include_top=False, weights='imagenet', input_tensor=input_tensor, pooling='max')
         x = net.output
         # flatten
         x = layers.Flatten()(x)
         x = layers.Dense(units=36, activation='relu')(x)
         # full connection
-        x = layers.Dense(units=1)(x)
+        x = layers.Dense(units=1, activation="sigmoid")(x)
         model = models.Model(inputs=net.inputs, outputs=x, name="rotateresnet50")
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate),
-                      loss="mean_squared_error",
-                      metrics=["mean_absolute_error"])
+                      loss=angle_error_regression,
+                      metrics=["mean_squared_error"])
         if model_path and os.path.exists(model_path):
             model.load_weights(model_path)
         return model
@@ -157,7 +173,7 @@ def test(image_path, model_path='rotatemodel/model.h5'):
     data[0] = image_array
     if hasattr(img, 'close'):
         img.close()
-    data = applications.resnet50.preprocess_input(data, data_format='channels_last')
+    data = applications.resnet.preprocess_input(data, data_format='channels_last')
     result = model.predict(data)
     result = tf.reshape(result, [-1])
     np_result = keras.backend.eval(result)
@@ -187,10 +203,9 @@ def train(train_data_dir, validation_data_dir, epochs=10, model_path='rotatemode
                                         seed=int(time.monotonic()) + 1)
     # train
     model.fit(x=generator, validation_data=validation_generator, epochs=epochs,
-              callbacks=callbacks, steps_per_epoch=generator.size//batch_size,
-              use_multiprocessing=True)
+              callbacks=callbacks, steps_per_epoch=generator.size//batch_size, validation_steps=2)
 
 
 if __name__ == '__main__':
-    #test('rotate_origin/0_340.jpeg')
+    #test('rotate_data/2002_60.jpeg')
     train('train/', 'test/')
