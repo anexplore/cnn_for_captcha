@@ -185,6 +185,24 @@ detector.detect_displacement('image.jpg', 344)
 
 ****
 
+## 6. 大模型的识别
+尝试考虑使用图片大模型进行识别。
+> Prompt提示优化
+> 
+> 指令微调
+
+
+
+### 6.1 Google Gemini
+#### 简单验证码
+![simple](images/llm_simple.png)
+![simple1](images/llm_simple1.png)
+
+#### 复杂验证码
+对复杂文字验证码的识别效果不佳，可能经过微调训练能够实现更好的效果，但是需要考虑训练、部署、时间等成本投入以及识别速度
+![hanzi](images/llm_hanzi.png)
+![hanzi1](images/llm_hanzi1.png)
+
 ## X.其它
 ### X.1 图片数据切分
 将准备好的图片按照比例切分成训练集和验证集
