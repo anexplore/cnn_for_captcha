@@ -200,6 +200,7 @@ detector.detect_displacement('image.jpg', 344)
 
 #### 复杂验证码
 对复杂文字验证码的识别效果不佳，可能经过微调训练能够实现更好的效果，但是需要考虑训练、部署、时间等成本投入以及识别速度
+
 ![hanzi](images/llm_hanzi.png)
 ![hanzi1](images/llm_hanzi1.png)
 
