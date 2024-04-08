@@ -192,10 +192,26 @@ detector.detect_displacement('image.jpg', 344)
 
 ## 6. 大模型的识别
 尝试考虑使用图片大模型进行识别。
+
+**个人感觉：使用视觉等多模态大模型经过指令微调后应该会取得比较好的识别效果，可以做学术研究探讨。但是考虑到大模型本身对算力资源、训练物料等要求，实际成本会比较高。**
+**另外，目前识别速度普遍偏慢。**
+**大模型是一种可能方案，但不一定是最优的方案。需要综合考虑成本、速度等方面。**
+
+**虽然现在大模型OCR识别能力有些弱，相信最终还是大模型吊打牛鬼蛇神**
+
 > Prompt提示优化
 > 
 > 指令微调
 
+提示词:
+>you are an ocr tool. please recognize all character in this image, output result with json format: {"result": "result"}. 
+>Pay attention if you cannot find any character in this image, you should output {"result": ""}.
+>Please just output json format, no explains. 
+
+### 通用非OCR专用大模型识别能力论文
+[Exploring OCR Capabilities of GPT-4V(ision) : A Quantitative and In-depth Evaluation](https://arxiv.org/abs/2401.00028)
+
+[CogAgent: A Visual Language Model for GUI Agents](https://arxiv.org/abs/2312.08914)
 
 
 ### 6.1 Google Gemini
@@ -208,6 +224,16 @@ detector.detect_displacement('image.jpg', 344)
 
 ![hanzi](images/llm_hanzi.png)
 ![hanzi1](images/llm_hanzi1.png)
+
+### 6.2 Bing Copilot
+
+**简单验证码**
+![bing copilot simple](images/bingcopilot_simple.png)
+![bing copilot simple1](images/bingcopilot_simple1.png)
+![bing copilot simple2](images/bingcopilot_simple2.png)
+
+**复杂验证码**
+![bing copilot hangzi](images/bingcopilot_hanzi.png)
 
 ## X.其它
 ### X.1 图片数据切分
