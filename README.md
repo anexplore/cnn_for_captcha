@@ -216,24 +216,49 @@ detector.detect_displacement('image.jpg', 344)
 
 ### 6.1 Google Gemini
 #### 简单验证码
+
 ![simple](images/llm_simple.png)
+
 ![simple1](images/llm_simple1.png)
 
 #### 复杂验证码
 对复杂文字验证码的识别效果不佳，可能经过微调训练能够实现更好的效果，但是需要考虑训练、部署、时间等成本投入以及识别速度
 
 ![hanzi](images/llm_hanzi.png)
+
 ![hanzi1](images/llm_hanzi1.png)
 
 ### 6.2 Bing Copilot
 
 **简单验证码**
+
 ![bing copilot simple](images/bingcopilot_simple.png)
+
 ![bing copilot simple1](images/bingcopilot_simple1.png)
+
 ![bing copilot simple2](images/bingcopilot_simple2.png)
 
 **复杂验证码**
+
 ![bing copilot hangzi](images/bingcopilot_hanzi.png)
+
+### 6.3 OpenAI Gpt4o
+**目前表现最好的多模态模型**
+#### 实体识别
+![gpt4o-6](images/gpt4o-6.png)
+
+#### 文字验证码
+![gpt4-4](images/gpt4o-4.png)
+
+![gpt42](images/gpt40-2.png)
+
+![gpt4o-5](images/gpt4o-5.png)
+
+#### 简单验证码
+![gpt41](images/gp4o-1.png)
+
+![gpt40-3](images/gpt40-3.png)
+
 
 ## X.其它
 ### X.1 图片数据切分
