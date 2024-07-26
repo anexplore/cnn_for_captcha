@@ -88,6 +88,7 @@ def detect_displacement(image_slider, image_background, blur=False, display_imag
         show_image("processed_image_slider", processed_image_slider)
         show_image("processed_image_background", processed_image_background)
         show_image("match", image_background)
+        wait_for_destroy_windows()
     return x, y, w, h
 
 """
