@@ -260,6 +260,20 @@ detector.detect_displacement('image.jpg', 344)
 ![gpt40-3](images/gpt40-3.png)
 
 
+### 6.4 Claude 3.5
+#### 实体识别
+
+![claudeidentity](images/claudehard.png)
+
+#### 文字验证码
+
+![claudehard](images/claudehard1.png)
+
+#### 简单验证码
+![claudesimple1](images/claudesimple1.png)
+
+![claudesimple2](images/claudesimple2.png)
+
 ## X.其它
 ### X.1 图片数据切分
 将准备好的图片按照比例切分成训练集和验证集
