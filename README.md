@@ -1,9 +1,9 @@
 # cnn_for_captcha
 
 ~~~diff
-- 随着文本、语音、视觉等大模型能力的迭代更新，机器理解能力突飞猛进，希望能够加速验证码技术的消亡
-+ 希望大模型的能力不要助长设计出更加反人类的验证码
-~~~
+- 我们看到一方面看到多模态等大模型可以帮我们解决很多验证码问题，同时也看到大模型帮助生成了更多类型的验证码
++ 随着像openclaw等AI自动化应用的普及与发展：1、验证码还能在未来起到多少防护作用 2、是不是会抛弃普通型验证码发展出更高级验证码形态 3、网站会不会做适应大模型操作的改动 以上有待观察
+~~~ 
 
 **基于深度学习的图片验证码识别**
 
@@ -191,17 +191,11 @@ detector.detect_displacement('image.jpg', 344)
 ****
 
 ## 6. 大模型的识别
-尝试考虑使用图片大模型进行识别。
 
-**个人感觉：使用视觉等多模态大模型经过指令微调后应该会取得比较好的识别效果，可以做学术研究探讨。但是考虑到大模型本身对算力资源、训练物料等要求，实际成本会比较高。**
-**另外，目前识别速度普遍偏慢。**
-**大模型是一种可能方案，但不一定是最优的方案。需要综合考虑成本、速度等方面。**
+尝试考虑使用图片大模型进行识别，现在(2026.03)来看对于一些简单类型的验证码多模态模型成功率OK，对于一些变形文字的识别还欠一些。
 
-**虽然现在大模型OCR识别能力有些弱，相信最终还是大模型吊打牛鬼蛇神**
+**多模态大模型、Agent完成验证码识别(不一定一次通过，可以在错误后自主纠错)**
 
-> Prompt提示优化
-> 
-> 指令微调
 
 提示词:
 >you are an ocr tool. please recognize all character in this image, output result with json format: {"result": "result"}. 
@@ -215,6 +209,9 @@ detector.detect_displacement('image.jpg', 344)
 
 
 ### 6.1 Google Gemini
+
+**2026.03.09 gemini 3.1 pro**
+
 #### 简单验证码
 
 ![simple](images/llm_simple.png)
@@ -222,57 +219,19 @@ detector.detect_displacement('image.jpg', 344)
 ![simple1](images/llm_simple1.png)
 
 #### 复杂验证码
-对复杂文字验证码的识别效果不佳，可能经过微调训练能够实现更好的效果，但是需要考虑训练、部署、时间等成本投入以及识别速度
+识别率提高，仍然存在错误。
 
 ![hanzi](images/llm_hanzi.png)
 
 ![hanzi1](images/llm_hanzi1.png)
 
-### 6.2 Bing Copilot
+### 6.2 Gpt 5.4
 
-**简单验证码**
+**2026.03.09**
 
-![bing copilot simple](images/bingcopilot_simple.png)
+#### 复杂验证码
+![gpt5](images/gpt5.png)
 
-![bing copilot simple1](images/bingcopilot_simple1.png)
-
-![bing copilot simple2](images/bingcopilot_simple2.png)
-
-**复杂验证码**
-
-![bing copilot hangzi](images/bingcopilot_hanzi.png)
-
-### 6.3 OpenAI Gpt4o
-**目前表现最好的多模态模型**
-#### 实体识别
-![gpt4o-6](images/gpt4o-6.png)
-
-#### 文字验证码
-![gpt4-4](images/gpt4o-4.png)
-
-![gpt42](images/gpt40-2.png)
-
-![gpt4o-5](images/gpt4o-5.png)
-
-#### 简单验证码
-![gpt41](images/gp4o-1.png)
-
-![gpt40-3](images/gpt40-3.png)
-
-
-### 6.4 Claude 3.5
-#### 实体识别
-
-![claudeidentity](images/claudehard.png)
-
-#### 文字验证码
-
-![claudehard](images/claudehard1.png)
-
-#### 简单验证码
-![claudesimple1](images/claudesimple1.png)
-
-![claudesimple2](images/claudesimple2.png)
 
 ## X.其它
 ### X.1 图片数据切分
