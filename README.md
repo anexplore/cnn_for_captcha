@@ -212,24 +212,30 @@ detector.detect_displacement('image.jpg', 344)
 
 **2026.03.09 gemini 3.1 pro**
 
-#### 简单验证码
+#### 6.1.1 简单验证码
 
 ![simple](images/llm_simple.png)
 
 ![simple1](images/llm_simple1.png)
 
-#### 复杂验证码
+#### 6.1.2 复杂验证码
 识别率提高，仍然存在错误。
 
 ![hanzi](images/llm_hanzi.png)
 
 ![hanzi1](images/llm_hanzi1.png)
 
+#### 6.1.3 Nano Banana2 直接标注规范字体
+
+**2026-03-19**
+
+![nanobanana2](images/nanobanana2-202603.png)
+
 ### 6.2 Gpt 5.4
 
 **2026.03.09**
 
-#### 复杂验证码
+#### 6.2.1 复杂验证码
 ![gpt5](images/gpt5.png)
 
 
